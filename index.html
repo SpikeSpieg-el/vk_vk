@@ -32,15 +32,24 @@
 
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
     <script>
+        // Инициализация VK Bridge
         vkBridge.send("VKWebAppInit", {});
 
-        let counter = 0;
+        // Получение сохранённого значения счётчика из localStorage
+        let counter = localStorage.getItem('clickCounter') || 0;
         const button = document.getElementById('clicker');
         const counterDisplay = document.getElementById('counter');
 
+        // Отображение текущего значения счётчика
+        counterDisplay.textContent = counter;
+
         button.addEventListener('click', () => {
+            // Увеличение счётчика и его отображение
             counter++;
             counterDisplay.textContent = counter;
+
+            // Сохранение нового значения счётчика в localStorage
+            localStorage.setItem('clickCounter', counter);
         });
     </script>
 </body>
