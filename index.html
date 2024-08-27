@@ -3,15 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Кликер ВКонтакте</title>
-    <link rel="stylesheet" href="appVK/style.css">
+    <title>VK Clicker</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        #clicker {
+            padding: 20px;
+            background-color: #0077ff;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+    </style>
 </head>
 <body>
-    <div id="app">
-        <h1>Кликер ВКонтакте</h1>
-        <button id="clicker-button">Кликни меня!</button>
-        <p>Очки: <span id="score">0</span></p>
-    </div>
-    <script src="appVK/main.js"></script>
+    <button id="clicker">Кликни меня!</button>
+    <p>Счёт: <span id="counter">0</span></p>
+
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+    <script>
+        vkBridge.send("VKWebAppInit", {});
+
+        let counter = 0;
+        const button = document.getElementById('clicker');
+        const counterDisplay = document.getElementById('counter');
+
+        button.addEventListener('click', () => {
+            counter++;
+            counterDisplay.textContent = counter;
+        });
+    </script>
 </body>
 </html>
