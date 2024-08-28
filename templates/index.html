@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VK Clicker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div id="menu">
+        <div class="menu-item">
+            <!--<label for="bgColor">Фон кнопки</label>-->
+            <!--<input type="color" id="bgColor" value="#0077ff">-->
+        </div>
+        <div class="menu-item">
+            <!--<label for="textColor">Цвет текста кнопки</label>-->
+            <!--<input type="color" id="textColor" value="#ffffff">-->
+        </div>
+        <div class="menu-item">
+            <label for="borderRadius">Закругление кнопки</label>
+            <input type="range" id="borderRadius" min="0" max="50" value="10">
+        </div>
+        <div id="backgrounds"></div>
+    </div>
+    <button id="menuToggle">Меню</button>
+
+    <div class="box">
+        <div class="clickCounter">
+            <p>Счёт: <span id="counter">0</span></p>
+        </div>
+        <button id="clicker">Кликни меня!</button>
+    </div>
+    
+    <!-- Кнопка для приглашения друзей -->
+    <button id="showLeaderboard">Показать таблицу лидеров</button>
+    <button id="inviteButton">Пригласить друзей</button>
+
+
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>
