@@ -7,12 +7,19 @@
     <style>
         body {
             display: flex;
-            justify-content: center;
-            align-items: center;
             height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
+            background-size: contain; /* Изменено для адаптации изображения */
+            background-repeat: no-repeat; /* Отключаем повторение фона */
+            background-position: center center; /* Центрирование изображения */
+            transition: background-image 0.5s ease-in-out;
+            flex-direction: column;
+            flex-wrap: nowrap;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
         }
         #clicker {
             padding: 20px;
@@ -23,22 +30,160 @@
             font-size: 24px;
             cursor: pointer;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: border-radius 0.3s ease;
+        }
+        #backgrounds {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 30px;
+            flex-wrap: wrap;
+            flex-direction: row;
+        }
+        .background-item {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #0077ff;
+            cursor: pointer;
+            background-size: cover;
+            border-radius: 5px;
+        }
+        .locked {
+            filter: grayscale(100%);
+            cursor: not-allowed;
+        }
+        .clickCounter {
+            background-color: #0077ff;
+            padding: 20px;
+            color: #ffffff;
+            border-radius: 10px;
+            transition: border-radius 0.3s ease;
+        }
+        .box {
+            padding: 20px;
+        }
+        #menu {
+            position: absolute;
+            top: 0;
+            left: -250px;
+            width: 250px;
+            height: 100%;
+            background-color: #333;
+            padding: 20px;
+            color: white;
+            transition: left 0.3s ease;
+            z-index: 1000;
+        }
+        #menu.open {
+            left: 0;
+        }
+        #menuToggle {
+            position: absolute;
+            top: 20px;
+            left: 200px;
+            background-color: #0077ff;
+            color: white;
+            padding: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            z-index: 1001;
+        }
+        .menu-item {
+            margin-bottom: 20px;
+        }
+        .menu-item label {
+            display: block;
+            margin-bottom: 5px;
         }
     </style>
 </head>
 <body>
-    <button id="clicker">Кликни меня!</button>
-    <p>Счёт: <span id="counter">0</span></p>
+    <div id="menu">
+        <div class="menu-item">
+            <label for="bgColor">Фон кнопки</label>
+            <input type="color" id="bgColor" value="#0077ff">
+        </div>
+        <div class="menu-item">
+            <label for="textColor">Цвет текста кнопки</label>
+            <input type="color" id="textColor" value="#ffffff">
+        </div>
+        <div class="menu-item">
+            <label for="borderRadius">Закругление кнопки</label>
+            <input type="range" id="borderRadius" min="0" max="50" value="10">
+        </div>
+        <div id="backgrounds"></div>
+    </div>
+    <button id="menuToggle">Меню</button>
+
+    <div class="box">
+        <div class="clickCounter">
+            <p>Счёт: <span id="counter">0</span></p>
+        </div>
+        <button id="clicker">Кликни меня!</button>
+    </div>
+    <button id="showLeaderboard">Показать таблицу лидеров</button>
+
 
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
     <script>
         // Инициализация VK Bridge
         vkBridge.send("VKWebAppInit", {});
 
-        // Получение сохранённого значения счётчика из localStorage
-        let counter = localStorage.getItem('clickCounter') || 0;
+        // Получение сохранённых значений из localStorage
+        let counter = parseInt(localStorage.getItem('clickCounter')) || 0;
+        const currentBackground = localStorage.getItem('selectedBackground') || '';
+        const savedBgColor = localStorage.getItem('bgColor') || '#0077ff';
+        const savedTextColor = localStorage.getItem('textColor') || '#ffffff';
+        const savedBorderRadius = localStorage.getItem('borderRadius') || '10';
+
         const button = document.getElementById('clicker');
         const counterDisplay = document.getElementById('counter');
+        const backgroundsContainer = document.getElementById('backgrounds');
+        const menu = document.getElementById('menu');
+        const menuToggle = document.getElementById('menuToggle');
+
+        // Установка текущего фона и стилей кнопки
+        if (currentBackground) {
+            document.body.style.backgroundImage = `url(${currentBackground})`;
+        }
+        button.style.backgroundColor = savedBgColor;
+        button.style.color = savedTextColor;
+        button.style.borderRadius = savedBorderRadius + 'px';
+
+        // Массив фонов и количество кликов для разблокировки
+        const backgrounds = [
+            { url: 'images/bg.jpg', requiredClicks: 0 },   // Начальный фон
+            { url: 'images/00012-876982567.png', requiredClicks: 1000 }, // Фон 1
+            { url: 'images/00114-3680466574.png', requiredClicks: 5000 }, // Фон 2
+            { url: 'images/00052-3283610621.png', requiredClicks: 500 },
+            { url: 'images/00012-1807127414.png', requiredClicks: 505 },
+            { url: 'images/00169-498478096.png', requiredClicks: 550 },
+            { url: 'images/00129-1658642264.png', requiredClicks: 600 },
+            { url: 'images/00123-3040006377.png', requiredClicks: 700 },
+            { url: 'images/00012-4078529342.png', requiredClicks: 800 }, // Фон 3
+        ];
+
+        // Функция отображения доступных фонов
+        function renderBackgrounds() {
+            backgroundsContainer.innerHTML = ''; // Очищаем контейнер
+            backgrounds.forEach((bg, index) => {
+                const bgElement = document.createElement('div');
+                bgElement.className = 'background-item';
+                bgElement.style.backgroundImage = `url(${bg.url})`;
+
+                if (counter >= bg.requiredClicks) {
+                    bgElement.addEventListener('click', () => {
+                        document.body.style.backgroundImage = `url(${bg.url})`;
+                        localStorage.setItem('selectedBackground', bg.url);
+                    });
+                } else {
+                    bgElement.classList.add('locked');
+                }
+
+                backgroundsContainer.appendChild(bgElement);
+            });
+        }
 
         // Отображение текущего значения счётчика
         counterDisplay.textContent = counter;
@@ -50,7 +195,85 @@
 
             // Сохранение нового значения счётчика в localStorage
             localStorage.setItem('clickCounter', counter);
+
+            // Обновление списка доступных фонов
+            renderBackgrounds();
+
+            // Показывать рекламу каждые 1000 кликов
+            if (counter % 0 === 0) {
+                vkBridge.send('VKWebAppShowBannerAd', {
+                    banner_location: 'bottom'
+                })
+                .then((data) => {
+                    if (data.result) {
+                        // Баннерная реклама отобразилась
+                    }
+                })
+                .catch((error) => {
+                    // Ошибка
+                    console.log(error);
+                });
+            }
         });
+
+        // Начальное отображение фонов
+        renderBackgrounds();
+
+        // Логика открытия/закрытия меню
+        menuToggle.addEventListener('click', () => {
+            menu.classList.toggle('open');
+        });
+
+        // Обработчики изменения стилей через меню
+        document.getElementById('bgColor').addEventListener('input', (event) => {
+            const color = event.target.value;
+            button.style.backgroundColor = color;
+            localStorage.setItem('bgColor', color);
+        });
+
+        document.getElementById('textColor').addEventListener('input', (event) => {
+            const color = event.target.value;
+            button.style.color = color;
+            localStorage.setItem('textColor', color);
+        });
+
+        document.getElementById('borderRadius').addEventListener('input', (event) => {
+            const radius = event.target.value;
+            button.style.borderRadius = radius + 'px';
+            localStorage.setItem('borderRadius', radius);
+        });
+        let score = parseInt(localStorage.getItem('userScore')) || 0;
+
+button.addEventListener('click', () => {
+    // Увеличиваем счётчик кликов
+    counter++;
+    counterDisplay.textContent = counter;
+
+    // Сохраняем значение в localStorage
+    localStorage.setItem('clickCounter', counter);
+
+    // Обновляем очки пользователя
+    if (counter % 100 === 0) {
+        score += 1;
+        localStorage.setItem('userScore', score);
+    }
+});
+document.getElementById('showLeaderboard').addEventListener('click', () => {
+    // Получаем текущие очки пользователя из localStorage
+    let score = parseInt(localStorage.getItem('userScore')) || 0;
+
+    // Показываем таблицу лидеров через VK Bridge
+    vkBridge.send('VKWebAppShowLeaderBoardBox', {
+        user_results: score
+    })
+    .then((data) => {
+        console.log('Таблица показана');
+    })
+    .catch((e) => {
+        console.log('Ошибка!', e);
+    });
+});
+
     </script>
 </body>
 </html>
