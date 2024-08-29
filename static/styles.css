@@ -99,6 +99,7 @@ body {
     background-color: rgba(0,0,0,0.4);
 }
 
+/* Контент модального окна */
 .modal-content {
     background-color: #fefefe;
     margin: 15% auto;

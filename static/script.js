@@ -44,12 +44,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuToggle = document.getElementById('menuToggle');
     const inviteButton = document.getElementById('inviteButton');
     const showLeaderboardButton = document.getElementById('showLeaderboard');
-    const showGlobalLeaderboardButton = document.getElementById('showGlobalLeaderboard');
     const globalLeaderboardModal = document.getElementById('globalLeaderboardModal');
     const closeModal = document.getElementById('closeModal');
+    const showGlobalLeaderboardButton = document.getElementById('showGlobalLeaderboard');
     const leaderboardList = document.getElementById('leaderboardList');
+    const showAdButton = document.getElementById('showAd');
 
-    if (!button || !counterDisplay || !backgroundsContainer || !menu || !menuToggle || !inviteButton || !showLeaderboardButton || !showGlobalLeaderboardButton || !globalLeaderboardModal || !closeModal || !leaderboardList) {
+    if (!button || !counterDisplay || !backgroundsContainer || !menu || !menuToggle || !inviteButton || !showLeaderboardButton || !showGlobalLeaderboardButton || !globalLeaderboardModal || !closeModal || !leaderboardList || !showAdButton) {
         console.error('Один или несколько элементов не найдены в DOM');
         return;
     }
@@ -66,6 +67,12 @@ document.addEventListener('DOMContentLoaded', () => {
         { url: 'static/images/00028-3886952918.png', requiredClicks: 1000 },
         { url: 'static/images/00037-4027474390.png', requiredClicks: 1500 }
     ];
+
+    // Закрытие модального окна при клике на кнопку закрытия
+    closeModal.addEventListener('click', () => {
+        console.log('Close button clicked');
+        globalLeaderboardModal.style.display = 'none';
+    });
 
     function renderBackgrounds() {
         backgroundsContainer.innerHTML = ''; 
@@ -148,17 +155,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderBackgrounds();
 
         if (counter % 1000 === 0) {
-            vkBridge.send('VKWebAppShowBannerAd', {
-                banner_location: 'bottom'
-            })
-            .then((data) => {
-                if (data.result) {
-                    console.log('Баннерная реклама отобразилась');
-                }
-            })
-            .catch((error) => {
-                console.error('Ошибка показа баннера:', error);
-            });
+            // Показываем рекламу при достижении 1000 кликов
+            showAd();
         }
 
         if (counter % 100 === 0) {
@@ -211,15 +209,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Ошибка получения данных глобального рейтинга:', error);
             });
     });
+// Проверка наличия рекламы при загрузке
+    vkBridge.send('VKWebAppCheckNativeAds', { ad_format: 'reward' })
+        .then((data) => {
+            if (!data.result) {
+                console.log('Рекламные материалы не найдены.');
+            }
+        })
+        .catch((error) => {
+            console.error('Ошибка проверки наличия рекламы:', error);
+        });
 
-    closeModal.addEventListener('click', () => {
-        globalLeaderboardModal.style.display = 'none';
-    });
-
-    window.addEventListener('click', (event) => {
-        if (event.target === globalLeaderboardModal) {
-            globalLeaderboardModal.style.display = 'none';
-        }
+    showAdButton.addEventListener('click', () => {
+        vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'reward' })
+            .then((data) => {
+                if (data.result) {
+                    // Успешное отображение рекламы
+                    counter += 1000;
+                    counterDisplay.textContent = counter;
+                    updateUserData(userId, counter, score);
+                    console.log('Реклама показана, клики добавлены');
+                } else {
+                    console.log('Ошибка при показе рекламы');
+                }
+            })
+            .catch((error) => {
+                console.error('Ошибка показа рекламы:', error);
+            });
     });
 
     inviteButton.addEventListener('click', () => {
@@ -310,4 +326,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    renderBackgrounds();
 });
