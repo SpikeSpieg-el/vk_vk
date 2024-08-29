@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
+    let userId = null;
+    let counter = 0;
+    let score = 0;
+
     // Инициализация VK Bridge
     vkBridge.send("VKWebAppInit", {})
         .then(() => {
@@ -28,9 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Ошибка инициализации VK Bridge:', error);
         });
 
-    let userId = null;
-    let counter = 0;
-    let score = 0;
     const currentBackground = localStorage.getItem('selectedBackground') || '';
     const savedBgColor = localStorage.getItem('bgColor') || '#0077ff';
     const savedTextColor = localStorage.getItem('textColor') || '#ffffff';
@@ -42,8 +43,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const menu = document.getElementById('menu');
     const menuToggle = document.getElementById('menuToggle');
     const inviteButton = document.getElementById('inviteButton');
+    const showLeaderboardButton = document.getElementById('showLeaderboard');
+    const showGlobalLeaderboardButton = document.getElementById('showGlobalLeaderboard');
+    const globalLeaderboardModal = document.getElementById('globalLeaderboardModal');
+    const closeModal = document.getElementById('closeModal');
+    const leaderboardList = document.getElementById('leaderboardList');
 
-    if (!button || !counterDisplay || !backgroundsContainer || !menu || !menuToggle || !inviteButton) {
+    if (!button || !counterDisplay || !backgroundsContainer || !menu || !menuToggle || !inviteButton || !showLeaderboardButton || !showGlobalLeaderboardButton || !globalLeaderboardModal || !closeModal || !leaderboardList) {
         console.error('Один или несколько элементов не найдены в DOM');
         return;
     }
@@ -163,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUserData(userId, counter, score);
     });
 
-    document.getElementById('showLeaderboard').addEventListener('click', () => {
+    showLeaderboardButton.addEventListener('click', () => {
         if (!userId) {
             console.error('User ID не определен');
             return;
@@ -180,6 +186,40 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch((error) => {
             console.error('Ошибка показа таблицы лидеров:', error);
         });
+    });
+
+    showGlobalLeaderboardButton.addEventListener('click', () => {
+        fetch('/globalLeaderboard')
+            .then(response => response.json())
+            .then(data => {
+                // Фильтрация игроков с ID, содержащими 9 знаков
+                const filteredData = data.filter(user => user.id.toString().length === 9);
+
+                // Очистка списка перед добавлением новых данных
+                leaderboardList.innerHTML = '';
+
+                // Добавление отфильтрованных данных в список
+                filteredData.forEach(user => {
+                    const li = document.createElement('li');
+                    li.textContent = `ID: ${user.id}, Очки: ${user.score}`;
+                    leaderboardList.appendChild(li);
+                });
+
+                globalLeaderboardModal.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Ошибка получения данных глобального рейтинга:', error);
+            });
+    });
+
+    closeModal.addEventListener('click', () => {
+        globalLeaderboardModal.style.display = 'none';
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target === globalLeaderboardModal) {
+            globalLeaderboardModal.style.display = 'none';
+        }
     });
 
     inviteButton.addEventListener('click', () => {

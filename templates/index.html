@@ -33,11 +33,19 @@
     
     <!-- Кнопка для приглашения друзей -->
     <button id="showLeaderboard">Показать таблицу лидеров</button>
+    <button id="showGlobalLeaderboard">Показать глобальный рейтинг</button>
     <button id="inviteButton">Пригласить друзей</button>
 
+    <!-- Модальное окно для глобального рейтинга -->
+    <div id="globalLeaderboardModal" class="modal">
+        <div class="modal-content">
+            <span id="closeModal" class="close">&times;</span>
+            <h2>Топ 10 игроков</h2>
+            <ul id="leaderboardList"></ul>
+        </div>
+    </div>
 
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
-<script src="{{ url_for('static', filename='script.js') }}"></script>
-
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

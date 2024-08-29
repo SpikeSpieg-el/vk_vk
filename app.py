@@ -73,5 +73,15 @@ def leaderboard():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/globalLeaderboard', methods=['GET'])
+def global_leaderboard():
+    try:
+        all_users = User.query.order_by(User.score.desc()).all()
+        data = [{'id': user.id, 'score': user.score} for user in all_users]
+        return jsonify(data)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True, port=5173)
