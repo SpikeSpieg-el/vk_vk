@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const showGlobalLeaderboardButton = document.getElementById('showGlobalLeaderboard');
     const leaderboardList = document.getElementById('leaderboardList');
     const showAdButton = document.getElementById('showAd');
+    
 
     if (!button || !counterDisplay || !backgroundsContainer || !menu || !menuToggle || !inviteButton || !showLeaderboardButton || !showGlobalLeaderboardButton || !globalLeaderboardModal || !closeModal || !leaderboardList || !showAdButton) {
         console.error('Один или несколько элементов не найдены в DOM');
@@ -143,6 +144,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Ошибка отправки данных на сервер:', error);
         });
     }
+    
+   
 
     button.addEventListener('click', () => {
         if (!userId) {
@@ -156,7 +159,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (counter % 230 === 0) {
             // Показываем рекламу при достижении 1000 кликов
-            showAd();
+            bridge.send('VKWebAppShowBannerAd', {
+                banner_location: 'bottom'
+                })
+               .then((data) => { 
+                  if (data.result) {
+                    // Баннерная реклама отобразилась
+                  }
+                })
+                .catch((error) => {
+                  // Ошибка
+                  console.log(error);
+                });
         }
 
         if (counter % 100 === 0) {
@@ -219,6 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch((error) => {
             console.error('Ошибка проверки наличия рекламы:', error);
         });
+        
 
     showAdButton.addEventListener('click', () => {
         vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'reward' })
