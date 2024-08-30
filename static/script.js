@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
         counterDisplay.textContent = counter;
         renderBackgrounds();
 
-        if (counter % 1000 === 0) {
+        if (counter % 230 === 0) {
             // Показываем рекламу при достижении 1000 кликов
             showAd();
         }
@@ -226,6 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.result) {
                     // Успешное отображение рекламы
                     counter += 1000;
+                    score += 10;
                     counterDisplay.textContent = counter;
                     updateUserData(userId, counter, score);
                     console.log('Реклама показана, клики добавлены');
